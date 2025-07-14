@@ -1,6 +1,15 @@
 name: Generate Doxygen Markdown Docs
 description: Runs Doxygen and Doxybook2 to generate Markdown documentation.
 
+inputs:
+  project-name:
+    description: Doxygen PROJECT_NAME
+    required: true
+  project-brief:
+    description: Doxygen PROJECT_BRIEF
+    required: false
+    default: ""
+    
 runs:
   using: "composite"
   steps:
@@ -20,6 +29,12 @@ runs:
       run: |
         cp ${{ github.action_path }}/Doxyfile ./Doxyfile
         cp ${{ github.action_path }}/doxybook.json ./doxybook.json
+      shell: bash
+
+    - name: Inject custom project name and brief
+      run: |
+        sed -i "s/^PROJECT_NAME.*/PROJECT_NAME = \"${{ inputs.project-name }}\"/" ./Doxyfile
+        sed -i "s/^PROJECT_BRIEF.*/PROJECT_BRIEF = \"${{ inputs.project-brief }}\"/" ./Doxyfile
       shell: bash
 
     - name: Run Doxygen

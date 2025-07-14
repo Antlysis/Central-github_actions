@@ -1,0 +1,33 @@
+name: Generate Doxygen Markdown Docs
+description: Runs Doxygen and Doxybook2 to generate Markdown documentation.
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Doxygen and Graphviz
+      run: sudo apt-get update && sudo apt-get install -y doxygen graphviz cmake g++
+      shell: bash
+
+    - name: Install Doxybook2 v1.5.0
+      run: |
+        wget https://github.com/matusnovak/doxybook2/releases/download/v1.5.0/doxybook2-linux-amd64-v1.5.0.zip -O doxybook2.zip
+        unzip doxybook2.zip -d doxybook2-bin
+        sudo mv doxybook2-bin/bin/doxybook2 /usr/local/bin/
+        chmod +x /usr/local/bin/doxybook2
+      shell: bash
+
+    - name: Copy shared configs
+      run: |
+        cp ${{ github.action_path }}/Doxyfile ./Doxyfile
+        cp ${{ github.action_path }}/doxybook.json ./doxybook.json
+      shell: bash
+
+    - name: Run Doxygen
+      run: doxygen ./Doxyfile
+      shell: bash
+
+    - name: Run Doxybook2
+      run: |
+        mkdir -p docs/markdown
+        doxybook2 --input ./docs/xml --output docs/markdown --config ./doxybook.json
+      shell: bash

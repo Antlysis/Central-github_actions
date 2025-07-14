@@ -1,0 +1,68 @@
+#---------------------------------------------------------------------------
+# Project related configuration options
+#---------------------------------------------------------------------------
+PROJECT_NAME           = "Critical Data Application"
+PROJECT_BRIEF          = "Documentation for criticalData_app.h and criticalData_app.c"
+OUTPUT_DIRECTORY       = docs
+INPUT                  = components
+FILE_PATTERNS          = *.h *.c
+RECURSIVE              = YES
+
+#---------------------------------------------------------------------------
+# Build related configuration options
+#---------------------------------------------------------------------------
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = YES
+EXTRACT_STATIC         = YES
+EXTRACT_LOCAL_CLASSES  = YES
+EXTRACT_ANON_NSPACES   = YES
+
+#---------------------------------------------------------------------------
+# Output formats
+#---------------------------------------------------------------------------
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+
+GENERATE_XML           = YES
+XML_OUTPUT             = xml
+
+GENERATE_LATEX         = NO
+GENERATE_MAN           = NO
+GENERATE_RTF           = NO
+GENERATE_PERLMOD       = NO
+GENERATE_DOCBOOK       = NO
+
+#---------------------------------------------------------------------------
+# Source code browsing
+#---------------------------------------------------------------------------
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = YES
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES
+CALL_GRAPH             = YES
+CALLER_GRAPH           = YES
+GRAPHICAL_HIERARCHY    = YES
+DOT_GRAPH_MAX_NODES    = 50
+HAVE_DOT               = YES
+DOT_IMAGE_FORMAT       = svg
+
+#---------------------------------------------------------------------------
+# Documentation options
+#---------------------------------------------------------------------------
+SHOW_USED_FILES        = YES
+SHOW_INCLUDE_FILES     = YES
+FULL_PATH_NAMES        = NO
+#STRIP_FROM_PATH        = ../components/criticalData_app/
+
+#---------------------------------------------------------------------------
+# Warnings and progress
+#---------------------------------------------------------------------------
+QUIET                  = NO
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+
+#---------------------------------------------------------------------------
+# Miscellaneous
+#---------------------------------------------------------------------------
+GENERATE_TREEVIEW      = YES
+DISABLE_INDEX          = NO

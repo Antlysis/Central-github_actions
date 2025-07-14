@@ -1,0 +1,17 @@
+{
+  "baseUrl": "",
+  "copyImages": true,
+  "fileExt": "md",
+  "folderGroupsName": "Modules",
+  "foldersToGenerate": [
+    "modules",
+    "files",
+    "classes"
+  ],
+  "templatesPath": "templates",
+  "indexInFolders": false,
+  "mainPageInRoot": false,
+  "linkSuffix": ".md",
+  "linkLowercase": true,
+  "linkStripChar": "_"
+}

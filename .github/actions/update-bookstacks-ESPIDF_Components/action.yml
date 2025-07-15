@@ -122,7 +122,7 @@ runs:
         upload_md_file "CHANGELOG.md" "CHANGELOG"
         
         # 3. Upload first markdown file from Classes folder as "Structures"
-        STRUCTS_FILE=$(find 'docs/markdown/Classes' -maxdepth 1 -type f -name '*.md' | head -n 1)
+        STRUCTS_FILE=$(find docs/markdown/Classes -maxdepth 1 -type f -name '*.md' | head -n 1)
         if [[ -n "$STRUCTS_FILE" ]]; then
           upload_md_file "$STRUCTS_FILE" "Structures"
         else

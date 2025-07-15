@@ -4,7 +4,8 @@ const glob = require('glob');
 const jsdoc2md = require('jsdoc-to-markdown');
 
 const inputGlob = process.env.INPUT_FUNCTION_PATH || 'config/function/*.js';
-const outputDir = path.join(__dirname, 'md');
+const outputDir = path.join(process.cwd(), 'docs', 'function', 'md');
+//const outputDir = path.join(__dirname, 'md');
 
 if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir, { recursive: true });

@@ -1,0 +1,16 @@
+{
+  "name": "generate-docs-jsdoc_swagger",
+  "version": "1.0.0",
+  "main": "genJsdocMd.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "jsdoc": "^4.0.4",
+    "jsdoc-to-markdown": "^9.1.1",
+    "swagger-parser": "^10.0.3"
+  }
+}

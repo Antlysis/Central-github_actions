@@ -55,25 +55,63 @@ runs:
             return
           fi
 
-          echo "📄 Uploading \"$FILE\" as \"$TITLE\" [$(echo "$CONTENT" | wc -c)]"
-          
-          DATA=$(jq -n \
+          echo "🔍 Searching for existing page \"$TITLE\"..."
+
+          PAGE_ID=$(echo "$ALL_PAGES" | jq \
             --arg name "$TITLE" \
-            --argjson markdown "$CONTENT" \
-            --argjson book_id "${BOOKSTACK_BOOK_ID:-null}" \
-            --argjson chapter_id "${BOOKSTACK_CHAPTER_ID:-null}" \
-            '{
-              name: $name,
-              markdown: $markdown,
-              book_id: $book_id,
-              chapter_id: $chapter_id
-            }')
-          
-          curl -s -X POST "$BOOKSTACK_BASE_URL/api/pages" \
-            -H "Authorization: Token $BOOKSTACK_API_ID:$BOOKSTACK_API_SECRET" \
-            -H "Content-Type: application/json" \
-            -d "$DATA"
-        }
+            --arg book_id "$BOOKSTACK_BOOK_ID" \
+            --arg chapter_id "$BOOKSTACK_CHAPTER_ID" '
+              .data[]
+              | select(.name == $name and (.book_id|tostring) == $book_id and (.chapter_id|tostring) == $chapter_id)
+              | .id' | head -n 1)
+
+          if [[ -n "$PAGE_ID" ]]; then
+            echo "✏️ Updating existing page \"$TITLE\" (ID: $PAGE_ID)..."
+
+            jq -n \
+              --arg name "$TITLE" \
+              --argjson markdown "$CONTENT" \
+              --argjson book_id "${BOOKSTACK_BOOK_ID:-null}" \
+              --argjson chapter_id "${BOOKSTACK_CHAPTER_ID:-null}" \
+              '{
+                name: $name,
+                markdown: $markdown,
+                book_id: $book_id,
+                chapter_id: $chapter_id
+              }' > payload.json
+
+            # curl -s -X PUT "$BOOKSTACK_BASE_URL/api/pages/$PAGE_ID" \
+            #   -H "Authorization: Token $BOOKSTACK_API_ID:$BOOKSTACK_API_SECRET" \
+            #   -H "Content-Type: application/json" \
+            #   -d @payload.json
+          else
+            echo "🆕 Creating new page \"$TITLE\"..."
+
+            jq -n \
+              --arg name "$TITLE" \
+              --argjson markdown "$CONTENT" \
+              --argjson book_id "${BOOKSTACK_BOOK_ID:-null}" \
+              --argjson chapter_id "${BOOKSTACK_CHAPTER_ID:-null}" \
+              '{
+                name: $name,
+                markdown: $markdown,
+                book_id: $book_id,
+                chapter_id: $chapter_id
+              }' > payload.json
+
+            # curl -s -X POST "$BOOKSTACK_BASE_URL/api/pages" \
+            #   -H "Authorization: Token $BOOKSTACK_API_ID:$BOOKSTACK_API_SECRET" \
+            #   -H "Content-Type: application/json" \
+            #   -d @payload.json
+          fi
+
+          rm -f payload.json
+        } 
+
+        echo "🚀 Getting all pages"
+        ALL_PAGES=$(curl -s "$BOOKSTACK_BASE_URL/api/pages?count=1000" \
+        -H "Authorization: Token $BOOKSTACK_API_ID:$BOOKSTACK_API_SECRET")
+
 
         echo "🚀 Starting upload..."
 

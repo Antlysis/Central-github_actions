@@ -9,6 +9,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "glob": "^11.0.3",
     "jsdoc": "^4.0.4",
     "jsdoc-to-markdown": "^9.1.1",
     "swagger-parser": "^10.0.3"

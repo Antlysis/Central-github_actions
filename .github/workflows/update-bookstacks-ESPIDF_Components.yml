@@ -83,19 +83,19 @@ jobs:
           upload_md_file "README.md" "README"
           upload_md_file "CHANGELOG.md" "CHANGELOG"
 
-          STRUCTS_FILE=$(find Classes -maxdepth 1 -type f -name '*.md' | head -n 1)
+          STRUCTS_FILE=$(find docs/markdown/Classes -maxdepth 1 -type f -name '*.md' | head -n 1)
           [[ -n "$STRUCTS_FILE" ]] && upload_md_file "$STRUCTS_FILE" "Structures" || echo "⚠️ No Classes/*.md"
 
-          for f in Modules/*.md; do
+          for f in docs/markdown/Modules/*.md; do
             [[ -f "$f" ]] || continue
             TITLE=$(grep -m1 '^# ' "$f" | sed 's/^# //')
             [[ -n "$TITLE" ]] && upload_md_file "$f" "$TITLE" || echo "❌ No title in $f"
           done
 
-          HEADER_FILE=$(find Files -type f -name '*h.md' | head -n 1)
+          HEADER_FILE=$(find docs/markdown/Files -type f -name '*h.md' | head -n 1)
           [[ -n "$HEADER_FILE" ]] && upload_md_file "$HEADER_FILE" "Header File"
 
-          C_FILE=$(find Files -type f -name '*c.md' | head -n 1)
+          C_FILE=$(find docs/markdown/Files -type f -name '*c.md' | head -n 1)
           [[ -n "$C_FILE" ]] && upload_md_file "$C_FILE" "C Source File"
 
           echo "✅ Upload complete."

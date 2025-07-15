@@ -59,6 +59,7 @@ jobs:
               return
             fi
 
+            # Search through the pages to find if existing
             echo "🔍 Searching for existing page \"$TITLE\"..."
 
             PAGE_ID=$(echo "$ALL_PAGES" | jq \
@@ -69,6 +70,7 @@ jobs:
                 | select(.name == $name and (.book_id|tostring) == $book_id and (.chapter_id|tostring) == $chapter_id)
                 | .id' | head -n 1)
 
+            # Update page if page exist
             if [[ -n "$PAGE_ID" ]]; then
               echo "✏️ Updating existing page \"$TITLE\" (ID: $PAGE_ID)..."
 
@@ -84,10 +86,12 @@ jobs:
                   chapter_id: $chapter_id
                 }' > payload.json
 
-              # curl -s -X PUT "$BOOKSTACK_BASE_URL/api/pages/$PAGE_ID" \
-              #   -H "Authorization: Token $BOOKSTACK_API_ID:$BOOKSTACK_API_SECRET" \
-              #   -H "Content-Type: application/json" \
-              #   -d @payload.json
+              curl -s -X PUT "$BOOKSTACK_BASE_URL/api/pages/$PAGE_ID" \
+                -H "Authorization: Token $BOOKSTACK_API_ID:$BOOKSTACK_API_SECRET" \
+                -H "Content-Type: application/json" \
+                -d @payload.json
+
+            # Create new page if page does not exist
             else
               echo "🆕 Creating new page \"$TITLE\"..."
 
@@ -103,37 +107,45 @@ jobs:
                   chapter_id: $chapter_id
                 }' > payload.json
 
-              # curl -s -X POST "$BOOKSTACK_BASE_URL/api/pages" \
-              #   -H "Authorization: Token $BOOKSTACK_API_ID:$BOOKSTACK_API_SECRET" \
-              #   -H "Content-Type: application/json" \
-              #   -d @payload.json
+              curl -s -X POST "$BOOKSTACK_BASE_URL/api/pages" \
+                -H "Authorization: Token $BOOKSTACK_API_ID:$BOOKSTACK_API_SECRET" \
+                -H "Content-Type: application/json" \
+                -d @payload.json
             fi
 
             rm -f payload.json
           }
 
+          # Get all pages
           echo "🚀 Getting all pages"
-
           ALL_PAGES=$(curl -s "$BOOKSTACK_BASE_URL/api/pages?count=1000" \
             -H "Authorization: Token $BOOKSTACK_API_ID:$BOOKSTACK_API_SECRET")
 
+          # Start uploading process
           echo "🚀 Starting upload..."
 
+          # 1. Upload root README.md
           upload_md_file "README.md" "README"
+
+          # 2. Upload root CHANGELOG.md
           upload_md_file "CHANGELOG.md" "CHANGELOG"
 
+          # 3. Upload first markdown file from Classes folder as "Structures"
           STRUCTS_FILE=$(find docs/markdown/Classes -maxdepth 1 -type f -name '*.md' | head -n 1)
           [[ -n "$STRUCTS_FILE" ]] && upload_md_file "$STRUCTS_FILE" "Structures" || echo "⚠️ No Classes/*.md"
 
+          # 4. Loop through all .md files in Modules folder using # title
           for f in docs/markdown/Modules/*.md; do
             [[ -f "$f" ]] || continue
             TITLE=$(grep -m1 '^# ' "$f" | sed 's/^# //')
             [[ -n "$TITLE" ]] && upload_md_file "$f" "$TITLE" || echo "❌ No title in $f"
           done
 
+          # 5. Upload first Files/*h.md as Header File
           HEADER_FILE=$(find docs/markdown/Files -type f -name '*h.md' | head -n 1)
           [[ -n "$HEADER_FILE" ]] && upload_md_file "$HEADER_FILE" "Header File"
 
+          # 6. Upload first Files/*c.md as C Source File
           C_FILE=$(find docs/markdown/Files -type f -name '*c.md' | head -n 1)
           [[ -n "$C_FILE" ]] && upload_md_file "$C_FILE" "C Source File"
 

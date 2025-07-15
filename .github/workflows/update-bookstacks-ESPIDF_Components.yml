@@ -1,0 +1,101 @@
+name: Update Bookstack Docs
+
+on:
+  workflow_call:
+    inputs:
+      book-id:
+        required: true
+        type: string
+      chapter-id:
+        required: false
+        type: string
+        default: ''
+    secrets:
+      BOOKSTACK_API_ID:
+        required: true
+      BOOKSTACK_API_SECRET:
+        required: true
+      BOOKSTACK_BASE_URL:
+        required: true
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout caller repo
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Upload markdown files to BookStack
+        env:
+          BOOKSTACK_API_ID: ${{ secrets.BOOKSTACK_API_ID }}
+          BOOKSTACK_API_SECRET: ${{ secrets.BOOKSTACK_API_SECRET }}
+          BOOKSTACK_BOOK_ID: ${{ inputs.book-id }}
+          BOOKSTACK_CHAPTER_ID: ${{ inputs.chapter-id }}
+          BOOKSTACK_BASE_URL: ${{ secrets.BOOKSTACK_BASE_URL }}
+        run: |
+          #!/bin/bash
+          set -e
+
+          upload_md_file() {
+            local FILE="$1"
+            local TITLE="$2"
+
+            if [[ ! -f "$FILE" ]]; then
+              echo "❌ File not found: $FILE"
+              return
+            fi
+
+            CONTENT=$(awk '
+              /^#/ && !start { start = 1; next }
+              start { print }
+            ' "$FILE" | jq -Rs .)
+
+            if [[ -z "$CONTENT" || "$CONTENT" == "\"\"" ]]; then
+              echo "❌ Skipping empty file: $FILE"
+              return
+            fi
+
+            echo "📄 Uploading \"$FILE\" as \"$TITLE\" [$(echo "$CONTENT" | wc -c)]"
+
+            DATA=$(jq -n \
+              --arg name "$TITLE" \
+              --argjson markdown "$CONTENT" \
+              --arg book_id "$BOOKSTACK_BOOK_ID" \
+              --arg chapter_id "$BOOKSTACK_CHAPTER_ID" \
+              '{
+                name: $name,
+                markdown: $markdown,
+                book_id: ($book_id | tonumber?),
+                chapter_id: ($chapter_id | select(length > 0) | tonumber?)
+              }')
+
+            curl -s -X POST "$BOOKSTACK_BASE_URL/api/pages" \
+              -H "Authorization: Token $BOOKSTACK_API_ID:$BOOKSTACK_API_SECRET" \
+              -H "Content-Type: application/json" \
+              -d "$DATA"
+          }
+
+          echo "🚀 Starting upload..."
+
+          upload_md_file "README.md" "README"
+          upload_md_file "CHANGELOG.md" "CHANGELOG"
+
+          STRUCTS_FILE=$(find Classes -maxdepth 1 -type f -name '*.md' | head -n 1)
+          [[ -n "$STRUCTS_FILE" ]] && upload_md_file "$STRUCTS_FILE" "Structures" || echo "⚠️ No Classes/*.md"
+
+          for f in Modules/*.md; do
+            [[ -f "$f" ]] || continue
+            TITLE=$(grep -m1 '^# ' "$f" | sed 's/^# //')
+            [[ -n "$TITLE" ]] && upload_md_file "$f" "$TITLE" || echo "❌ No title in $f"
+          done
+
+          HEADER_FILE=$(find Files -type f -name '*h.md' | head -n 1)
+          [[ -n "$HEADER_FILE" ]] && upload_md_file "$HEADER_FILE" "Header File"
+
+          C_FILE=$(find Files -type f -name '*c.md' | head -n 1)
+          [[ -n "$C_FILE" ]] && upload_md_file "$C_FILE" "C Source File"
+
+          echo "✅ Upload complete."

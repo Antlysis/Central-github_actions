@@ -1,6 +1,14 @@
 name: Update Bookstack Docs
 description: Read specific markdown files and update Bookstack documentation accordingly.
 
+secrets:
+  BOOKSTACK_API_ID:
+    required: true
+  BOOKSTACK_API_SECRET:
+    required: true
+  BOOKSTACK_BASE_URL:
+    required: true
+
 inputs:
   book-id:
     description: Book ID from Bookstack

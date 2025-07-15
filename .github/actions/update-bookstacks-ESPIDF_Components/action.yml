@@ -84,7 +84,7 @@ runs:
         upload_md_file "CHANGELOG.md" "CHANGELOG"
         
         # 3. Upload first markdown file from Classes folder as "Structures"
-        STRUCTS_FILE=$(find Classes -maxdepth 1 -type f -name '*.md' | head -n 1)
+        STRUCTS_FILE=$(find docs/markdown/Classes -maxdepth 1 -type f -name '*.md' | head -n 1)
         if [[ -n "$STRUCTS_FILE" ]]; then
           upload_md_file "$STRUCTS_FILE" "Structures"
         else
@@ -92,7 +92,7 @@ runs:
         fi
 
         # 4. Loop through all .md files in Modules folder using # title
-        for f in Modules/*.md; do
+        for f in docs/markdown/Modules/*.md; do
           [[ -f "$f" ]] || continue
           TITLE=$(grep -m1 '^# ' "$f" | sed 's/^# //')
           if [[ -z "$TITLE" ]]; then
@@ -103,11 +103,11 @@ runs:
         done
 
         # 5. Upload first Files/*h.md as Header File
-        HEADER_FILE=$(find Files -type f -name '*h.md' | head -n 1)
+        HEADER_FILE=$(find docs/markdown/Files -type f -name '*h.md' | head -n 1)
         [[ -n "$HEADER_FILE" ]] && upload_md_file "$HEADER_FILE" "Header File"
 
         # 6. Upload first Files/*c.md as C Source File
-        C_FILE=$(find Files -type f -name '*c.md' | head -n 1)
+        C_FILE=$(find docs/markdown/Files -type f -name '*c.md' | head -n 1)
         [[ -n "$C_FILE" ]] && upload_md_file "$C_FILE" "C Source File"
 
 

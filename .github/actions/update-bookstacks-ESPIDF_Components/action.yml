@@ -1,0 +1,106 @@
+name: Update Bookstack Docs
+description: Read specific markdown files and update Bookstack documentation accordingly.
+
+inputs:
+  book-id:
+    description: Book ID from Bookstack
+    required: true
+  chapter-id:
+    description: Chapter ID from Bookstack
+    required: false
+    default: null
+    
+runs:
+  using: "composite"
+  steps:
+    - name: Install jq
+      run: sudo apt-get update && sudo apt-get install -y jq
+      
+    - name: Upload markdown files to BookStack
+      env:
+        BOOKSTACK_API_ID: ${{ secrets.BOOKSTACK_API_ID }}
+        BOOKSTACK_API_SECRET: ${{ secrets.BOOKSTACK_API_SECRET }}
+        BOOKSTACK_BOOK_ID: ${{ inputs.book-id }}
+        BOOKSTACK_CHAPTER_ID: ${{ inputs.chapter-id }}
+        BOOKSTACK_BASE_URL: ${{ secrets.BOOKSTACK_BASE_URL }}
+      run: |
+        #!/bin/bash
+        set -e
+
+        upload_md_file() {
+          local FILE="$1"
+          local TITLE="$2"
+
+          if [[ ! -f "$FILE" ]]; then
+            echo "❌ File not found: $FILE"
+            return
+          fi
+
+          # Extract content after first markdown heading
+          CONTENT=$(awk '
+            /^#/ && !start { start = 1; next }
+            start { print }
+          ' "$FILE" | jq -Rs .)
+
+          if [[ -z "$CONTENT" || "$CONTENT" == "\"\"" ]]; then
+            echo "❌ Skipping empty file: $FILE"
+            return
+          fi
+
+          echo "📄 Uploading \"$FILE\" as \"$TITLE\" [$(echo "$CONTENT" | wc -c)]"
+          
+          DATA=$(jq -n \
+            --arg name "$TITLE" \
+            --argjson markdown "$CONTENT" \
+            --argjson book_id "${BOOKSTACK_BOOK_ID:-null}" \
+            --argjson chapter_id "${BOOKSTACK_CHAPTER_ID:-null}" \
+            '{
+              name: $name,
+              markdown: $markdown,
+              book_id: $book_id,
+              chapter_id: $chapter_id
+            }')
+          
+          curl -s -X POST "$BOOKSTACK_BASE_URL/api/pages" \
+            -H "Authorization: Token $BOOKSTACK_API_ID:$BOOKSTACK_API_SECRET" \
+            -H "Content-Type: application/json" \
+            -d "$DATA"
+        }
+
+        echo "🚀 Starting upload..."
+
+        # 1. Upload root README.md
+        upload_md_file "README.md" "README"
+
+        # 2. Upload root CHANGELOG.md
+        upload_md_file "CHANGELOG.md" "CHANGELOG"
+        
+        # 3. Upload first markdown file from Classes folder as "Structures"
+        STRUCTS_FILE=$(find Classes -maxdepth 1 -type f -name '*.md' | head -n 1)
+        if [[ -n "$STRUCTS_FILE" ]]; then
+          upload_md_file "$STRUCTS_FILE" "Structures"
+        else
+          echo "⚠️ No markdown file found in Classes/ folder"
+        fi
+
+        # 4. Loop through all .md files in Modules folder using # title
+        for f in Modules/*.md; do
+          [[ -f "$f" ]] || continue
+          TITLE=$(grep -m1 '^# ' "$f" | sed 's/^# //')
+          if [[ -z "$TITLE" ]]; then
+            echo "❌ No heading found in $f"
+            continue
+          fi
+          upload_md_file "$f" "$TITLE"
+        done
+
+        # 5. Upload first Files/*h.md as Header File
+        HEADER_FILE=$(find Files -type f -name '*h.md' | head -n 1)
+        [[ -n "$HEADER_FILE" ]] && upload_md_file "$HEADER_FILE" "Header File"
+
+        # 6. Upload first Files/*c.md as C Source File
+        C_FILE=$(find Files -type f -name '*c.md' | head -n 1)
+        [[ -n "$C_FILE" ]] && upload_md_file "$C_FILE" "C Source File"
+
+
+        echo "✅ Upload complete."

@@ -1,8 +1,8 @@
 #---------------------------------------------------------------------------
 # Project related configuration options
 #---------------------------------------------------------------------------
-PROJECT_NAME           = "Critical Data Application"
-PROJECT_BRIEF          = "Documentation for criticalData_app.h and criticalData_app.c"
+PROJECT_NAME           = ""
+PROJECT_BRIEF          = ""
 OUTPUT_DIRECTORY       = docs
 INPUT                  = components
 FILE_PATTERNS          = *.h *.c

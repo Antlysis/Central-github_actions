@@ -107,8 +107,8 @@ if (!swaggerFile) {
 
             //const filename = `./docs/api/md/${tag.replace(/\s+/g, "_").toLowerCase()}.md`;
             //const outputDir = path.join(__dirname, 'md');
-            const outputDir = path.join(process.cwd(), 'docs', 'api', 'md');
-            const filename = path.join(outputDir, `${tag.replace(/\s+/g, "_").toLowerCase().split("_")[0]}`, `${tag.replace(/\s+/g, "_").toLowerCase()}.md`);
+            const outputDir = path.join(process.cwd(), 'docs', 'api', 'md', `${tag.replace(/\s+/g, "_").toLowerCase().split("_")[0]}`);
+            const filename = path.join(outputDir, `${tag.replace(/\s+/g, "_").toLowerCase()}.md`);
 
             if (!fs.existsSync(outputDir)) {
                 fs.mkdirSync(outputDir, { recursive: true });

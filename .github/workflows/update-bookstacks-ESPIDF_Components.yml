@@ -130,9 +130,9 @@ jobs:
           # 2. Upload root CHANGELOG.md
           upload_md_file "CHANGELOG.md" "CHANGELOG"
 
-          # 3. Upload first markdown file from Classes folder as "Structures"
-          STRUCTS_FILE=$(find docs/markdown/Classes -maxdepth 1 -type f -name '*.md' | head -n 1)
-          [[ -n "$STRUCTS_FILE" ]] && upload_md_file "$STRUCTS_FILE" "Structures" || echo "⚠️ No Classes/*.md"
+          # 3. Combine all structure files into one then upload it
+          cat docs/markdown/Classes/*.md > docs/markdown/structure.md 
+          upload_md_file "docs/markdown/structure.md" "Structures"
 
           # 4. Loop through all .md files in Modules folder using # title
           for f in docs/markdown/Modules/*.md; do

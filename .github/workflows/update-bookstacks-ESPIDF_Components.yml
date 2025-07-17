@@ -131,13 +131,16 @@ jobs:
           upload_md_file "CHANGELOG.md" "CHANGELOG"
 
           # 3. Combine all structure files into one then upload it
-          echo "# Structures" > docs/markdown/structure.md
           cat docs/markdown/Classes/*.md > docs/markdown/structure.md 
           upload_md_file "docs/markdown/structure.md" "Structures"
 
           # 4. Loop through all .md files in Modules folder using # title
           for f in docs/markdown/Modules/*.md; do
             [[ -f "$f" ]] || continue
+
+            # Skip structure.md if it's in this folder for any reason
+            [[ "$(basename "$f")" == "structure.md" ]] && continue
+
             TITLE=$(grep -m1 '^# ' "$f" | sed 's/^# //')
             [[ -n "$TITLE" ]] && upload_md_file "$f" "$TITLE" || echo "❌ No title in $f"
           done

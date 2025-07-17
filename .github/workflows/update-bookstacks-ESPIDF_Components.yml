@@ -137,11 +137,13 @@ jobs:
           # 4. Loop through all .md files in Modules folder using # title
           for f in docs/markdown/Modules/*.md; do
             [[ -f "$f" ]] || continue
+            [[ "$(basename "$f")" == "structure.md" ]] && continue  # ✅ Skip structure.md
 
-            # Skip structure.md if it's in this folder for any reason
-            [[ "$(basename "$f")" == "structure.md" ]] && continue
+            # Demote first-level title (# ...) to second-level (## ...)
+            sed -i '0,/^# /s/^# /## /' "$f"
 
-            TITLE=$(grep -m1 '^# ' "$f" | sed 's/^# //')
+            # Extract the original title before modifying, for upload name
+            TITLE=$(grep -m1 '^## ' "$f" | sed 's/^## //')
             [[ -n "$TITLE" ]] && upload_md_file "$f" "$TITLE" || echo "❌ No title in $f"
           done
 

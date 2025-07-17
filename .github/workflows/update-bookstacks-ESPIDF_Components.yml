@@ -138,13 +138,19 @@ jobs:
           for f in docs/markdown/Modules/*.md; do
             [[ -f "$f" ]] || continue
             [[ "$(basename "$f")" == "structure.md" ]] && continue  # ✅ Skip structure.md
-
-            # Demote first-level title (# ...) to second-level (## ...)
-            sed -i '0,/^# /s/^# /## /' "$f"
-
-            # Extract the original title before modifying, for upload name
-            TITLE=$(grep -m1 '^## ' "$f" | sed 's/^## //')
-            [[ -n "$TITLE" ]] && upload_md_file "$f" "$TITLE" || echo "❌ No title in $f"
+          
+            # Extract original title
+            TITLE=$(grep -m1 '^# ' "$f" | sed 's/^# //')
+          
+            [[ -z "$TITLE" ]] && echo "❌ No title in $f" && continue
+          
+            # Demote the first '# ' to '## ' and save back in-place
+            awk 'BEGIN{demoted=0}
+                 /^# / && !demoted {sub(/^# /, "## "); demoted=1}
+                 {print}
+                ' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+          
+            upload_md_file "$f" "$TITLE"
           done
 
           # 5. Upload first Files/*h.md as Header File

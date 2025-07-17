@@ -130,7 +130,7 @@ jobs:
           upload_md_file "CHANGELOG.md" "CHANGELOG"
 
           # 3. Combine all structure files into one then upload it
-          grep -h -v '^title: ' docs/markdown/Classes/*.md > docs/markdown/structure.md
+          grep -h -v '^title: ' docs/markdown/Classes/*.md | sed '/^---$/d' > docs/markdown/structure.md
           upload_md_file "docs/markdown/structure.md" "Structures"
 
           # 4. Loop through all .md files in Modules folder using # title

@@ -131,6 +131,7 @@ jobs:
           upload_md_file "CHANGELOG.md" "CHANGELOG"
 
           # 3. Combine all structure files into one then upload it
+          echo "# Structures" > docs/markdown/structure.md
           cat docs/markdown/Classes/*.md > docs/markdown/structure.md 
           upload_md_file "docs/markdown/structure.md" "Structures"
 
